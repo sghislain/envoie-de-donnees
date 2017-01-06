@@ -1,0 +1,139 @@
+<html>
+<?php
+
+    require_once("../../includes/incfiles/connexion.inc.php");
+    if (isset($_GET['userid'])) {
+       $userid=$_GET['userid'];
+    }else{
+        echo "erreur";
+    }
+
+
+            $reqnumero="SELECT id, nom, numero FROM sms ORDER BY id DESC";
+            $resultatnumero=mysql_query($reqnumero) or die(mysql_error());
+
+?>
+
+<div style="width:890px; margin:auto; padding-top:0px; text-align:center"><div style="text-align:left; margin-left:2px; margin-right:2px; vertical-align:top;">
+    <div style="width:250px; display:table-cell; vertical-align:top;">        
+        <div style="margin-top:8px; padding-left:0px;"><img src="<?php echo $URL;?>images/contact.png" width="180" height="250" alt="Contactez-nous" /></br></br>
+            
+            <div id="leftside"> 
+                <div class="utilisateur">
+                    <img src="<?php echo $URL;?>images/parametres2.png" width="40" height="40" alt="Parametres" /><b style="color: black; font-size:14px; padding:2px 5px; text-transform:uppercase">parametres</b>
+                </div>
+                    <div class="textedeco">
+                        <img src="<?php echo $URL;?>images/ajouter.png" width="20" height="20" alt="Ajouter" /><a style="margin-left:5px;" href="">Ajouter groupe</a><br/>
+                        <img src="<?php echo $URL;?>images/modifier.png" width="20" height="20" alt="Ajouter" /><a style="margin-left:5px;" href="">Envoyer SMS</a><br/>
+                        <img src="<?php echo $URL;?>images/afficher.ico" width="20" height="20" alt="Ajouter" /><a style="margin-left:5px;" href="<?php echo $UP;?>/includes/content/logout.page.php">Se déconnecter</a><br/>
+                    </div>
+        </div>
+            </div> 
+    </div>              <!-- onsubmit="return envoyerSMS();"  -->
+
+    <div style="width:5px; display:table-cell; vertical-align:top;">&nbsp;</div>
+
+      <!-- voici tout le form contenu dans l'id #contactDiv -->
+    <div id="contactDiv" style="width:338px; display:table-cell; vertical-align:top; height:auto;">
+        <form name="ref_form" id="ref_form" class="formulaire" onsubmit="return envoyerSMS();" enctype="application/x-www-form-urlencoded" style="padding:0 3px 0 0px;">
+
+            <ul><li style="padding:12px 0 12px 5px;">
+                 <h2>Envoyer un ou des SMS instantané ou en différé</h2>
+                 <span class="required_notification">* Champs requis</span>
+            </li></ul>
+            <fieldset class="c corn-all ln20" style="padding:5px 5px 3px 5px; margin:0; min-height:75px;"><legend style="color:#F00;"><b>Remplir les champs pour envoyer un SMS</b></legend>
+
+            <ul>
+
+                <li>
+                    <input type="text"  name="userid" value="<?php echo $userid;?>" style="display:none;">                                 
+                </li>   
+
+            </ul>
+            <ul>
+
+                <li>
+                <label class="label1" for="text">Groupe de destinataires</label>
+
+                        <select type="text" style="font-weight:bold; width:375px; max-width:375px; min-width:375px; height:30px; max-height:30px min-height:30px;" name="groupe">
+                            
+                            <option value="" selected="selected">Choisissez un groupe de destinataires</option>
+                            <?php while($numero=mysql_fetch_array($resultatnumero)) {?>                           
+                            <option value="<?php echo $numero['numero'] ;?>"><?php echo $numero['nom'] ;?></option>
+                            <?php } ?>   
+
+                        </select>                                  
+                </li>   
+
+            </ul>
+
+                                 <!-- voici la partie corps du message contenu dans l'id #contenu -->
+            
+                <div id="contenu" style="display:block; clear:both;"><table border="0" cellpadding="0" cellspacing="0">
+                        <tr><td width="590" valign="top" style="padding-left:5px; font-size:14px; padding-top:10px;"><b>Message &agrave; envoyer</b><br/>&nbsp;
+                        <textarea name="message" id="message" style="font-size:14px; font-weight:bold; margin-left:0px; overflow:auto; width:590px; min-width:590px; max-width:590px; min-height:180px; max-height:180px; height:180px;" placeholder="Saisissez ici votre message" ></textarea></td></tr></table>
+                        <p id="compteur">0 mots | 0 Caractere / <b style="color:red;">1 SMS = 160 Caractères</b>
+
+                        </p>
+                </div>
+            
+            
+                <br/><li style="display:inline;"><button class="submit" type="submit" name="submit" style="width:100px; font-weight:bold; cursor:pointer; padding:5px 10px; margin-bottom:10px;">Envoyez SMS</button></li>
+            </ul></fieldset>
+        </form>
+
+   </div>
+    </div>
+    </div>
+
+
+<script>
+$(document).ready(function(e) {
+ 
+  $('#message').keyup(function() {
+ 
+    var nombreCaractere = $(this).val().length;
+ 
+    var nombreMots = jQuery.trim($(this).val()).split(' ').length;
+    if($(this).val() === '') {
+        nombreMots = 0;
+    }
+ 
+    var msg = ' ' + nombreMots + ' mot(s) | ' + nombreCaractere + ' Caractere(s) - Attention : 1 SMS = 160 caractères';
+    $('#compteur').text(msg);
+    if (nombreCaractere > 160) { $('#compteur').addClass("mauvais"); } else { $('#compteur').removeClass("mauvais"); }
+ 
+  })
+ 
+});
+</script>
+
+<script type="text/javascript">
+    function envoyerSMS() {
+    var donnees = $('#ref_form').serialize();
+    $.ajax({
+        type: 'POST',
+        url: "../../includes/incfiles/api-sms-oceanic.inc.php",
+        data: donnees,
+        success: function(d) {
+            r = d.split("##");
+            //alert(d);
+            c = '<div class="c" id="demon-sms-all" style="display:block; width:100%; max-height:30px; background:#6f0707; color:#FFF; position:fixed; top:0; left:0; "><div style="text-align:center; width:100%;"><h1><b>Envoi du SMS en cours...</b><br/><b>Merci de patienter...</b></h1></div><div id="demon-aloha" style="text-align:center"></div></div>';
+            $('#body').append(c);
+            $("#demon-aloha").load(r[0], r[1], function(response, status, xhr) {
+                $("#demon-sms-all").slideUp(1000, function() {
+                    $('#demon-sms-all').remove();
+                    alert("SMS envoyé");
+                    $('#ref_form').reset();
+                    window.location.reload();
+                });
+            });
+        },
+        error: function() {}
+    });
+    return false;
+}
+
+</script>
+
+</html>
