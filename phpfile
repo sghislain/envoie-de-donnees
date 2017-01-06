@@ -1,0 +1,62 @@
+<?php
+
+	require_once("connexion.inc.php");
+      //var_dump($_POST);
+
+      $user=$_POST['userid'];
+                  $grp=$_POST['groupe'];
+                  $msg=urlencode(htmlspecialchars($_POST['message']));
+
+                  $nbre2caracteres=strlen($msg);
+                  $nbredest=substr_count($grp , ';');
+
+                        if ($nbre2caracteres<=160) {
+                              $nbremsg="1";
+                           } else{
+                                    if ($nbre2caracteres<=320) {
+                                          $nbremsg="2";
+                                    }
+                                    else{
+                                          if ($nbre2caracteres<=480) {
+                                                $nbremsg="3";
+                                          }else{
+                                                if ($nbre2caracteres<=640) {
+                                                      $nbremsg="4";
+                                                }else{
+                                                      if ($nbre2caracteres<=800) {
+                                                            $nbremsg="5";
+                                                      }
+                                                }
+
+                                          }
+                                    }
+                        $total=$nbre2caracteres*$nbredest;
+
+
+
+                  $ip=$_SERVER['REMOTE_ADDR'];
+
+                  $req="SELECT login from logs where md5(id)='$user'";
+                  $res=mysql_query($req);
+                  $user=mysql_fetch_array($res) or die(mysql_error());
+
+                  $username=$user['login'];                              
+                  $heure = date("H:i:s");
+                  $action='envoyer SMS';
+                  $dc= date('d/m/20y');
+                  $hdate=$dc.' - '.$heure;
+
+                  $add=mysql_query("INSERT INTO historique(login, numero, message, nbreDest, nbrecaract, nbremsg, total, hdate) VALUES ('$username', '$grp', '$msg', '$nbreDest', '$nbre2caracteres', '$total', '$hdate')") or die(mysql_error());
+
+                  $requeteaction="INSERT INTO logs (login, heure, action, ip) VALUES ('$username', '$hdate', '$action','$ip')" ;
+                  $resultat=mysql_query($requeteaction);
+         
+            	$message=$msg;
+                  $destinataires=$grp;
+            	$api="1234"; $user=""; $pword=""; $expediteur=$username;
+            	$OC_SMS=""; 
+            	echo "$OC_SMS##api_id=$api&user=$user&password=$pword&from=$expediteur&to=$destinataires&text=$message";
+	           }else{
+                  echo "erreur de reception";
+                 }
+?>
